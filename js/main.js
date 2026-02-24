@@ -1,4 +1,4 @@
-import { getAllCourses, getStudentsByCourse } from './api.js'
+import { getAllCourses, getStudentsByCourse, getStudentById } from './api.js'
 import { createComponent, renderScreen } from './gerenciador-telas.js'
 
 const mapaCursos = {
@@ -17,12 +17,70 @@ const nomeCursos = {
     'RDS': 'Redes de computadores'
 }
 
+const createStudentDashboard = async (id) => {
+    const main = createComponent('main', ['main-dashboard'])
+    
+    const aluno = await getStudentById(id)
+
+    const profileBox = createComponent('div', ['profile-box'])
+    const foto = createComponent('img', ['profile-img'], '', { src: aluno.foto })
+    const nome = createComponent('h2', ['profile-name'], aluno.nome)
+    
+    profileBox.append(foto, nome)
+
+    const chartBox = createComponent('div', ['chart-box'])
+
+    aluno.desempenho.forEach(materia => {
+        const barContainer = createComponent('div', ['bar-container'])
+        
+        const gradeText = createComponent('span', ['grade-text'], materia.valor.toString())
+
+        const barTrack = createComponent('div', ['bar-track'])
+        const barFill = createComponent('div', ['bar-fill'])
+
+        barFill.style.height = `${materia.valor}%`
+
+        if (materia.valor >= 80) {
+            barFill.classList.add('bar-blue')
+            gradeText.classList.add('text-blue')
+        } else if (materia.valor >= 50) {
+            barFill.classList.add('bar-yellow')
+            gradeText.classList.add('text-yellow')
+        } else {
+            barFill.classList.add('bar-red')
+            gradeText.classList.add('text-red')
+        }
+
+        barTrack.appendChild(barFill)
+        
+        const subjectName = createComponent('span', ['subject-name'], materia.categoria)
+
+        barContainer.append(gradeText, barTrack, subjectName)
+        chartBox.appendChild(barContainer)
+    })
+
+    main.append(profileBox, chartBox)
+
+    return main
+}
+
+const loadStudentDashboard = async (alunoId) => {
+    const header = createHeader('aluno')
+    const main = await createStudentDashboard(alunoId)
+    
+    renderScreen(header, main)
+}
+
 const createStudentCard = (aluno) => {
     const statusClass = aluno.status && aluno.status.toLowerCase() === 'finalizado' ? 'bg-amarelo' : 'bg-azul'
     
     const card = createComponent('div', ['card-aluno', statusClass])
     const img = createComponent('img', ['foto-aluno'], '', { src: aluno.foto })
     const nome = createComponent('h2', ['nome-aluno'], aluno.nome)
+
+    card.addEventListener('click', () => {
+        loadStudentDashboard(aluno.id)
+    })
     
     card.append(img, nome)
     
