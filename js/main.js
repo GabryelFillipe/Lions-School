@@ -64,25 +64,27 @@ const createStudentDashboard = async (id) => {
     return main
 }
 
-const loadStudentDashboard = async (alunoId) => {
-    const header = createHeader('aluno')
+const loadStudentDashboard = async (alunoId, siglaCurso) => {
+    const header = createHeader('aluno', () => {
+        loadStudentPage(siglaCurso)
+    })
     const main = await createStudentDashboard(alunoId)
     
     renderScreen(header, main)
 }
 
-const createStudentCard = (aluno) => {
+const createStudentCard = (aluno, siglaCurso) => {
     const statusClass = aluno.status && aluno.status.toLowerCase() === 'finalizado' ? 'bg-amarelo' : 'bg-azul'
     
     const card = createComponent('div', ['card-aluno', statusClass])
     const img = createComponent('img', ['foto-aluno'], '', { src: aluno.foto })
     const nome = createComponent('h2', ['nome-aluno'], aluno.nome)
-
-    card.addEventListener('click', () => {
-        loadStudentDashboard(aluno.id)
-    })
     
     card.append(img, nome)
+    
+    card.addEventListener('click', () => {
+        loadStudentDashboard(aluno.id, siglaCurso)
+    })
     
     return card
 }
@@ -100,7 +102,7 @@ const createStudentPage = async (siglaCurso) => {
     const opCursando = createComponent('option', [], 'Cursando', { value: 'Cursando' })
     
     selectStatus.append(opTodos, opFinalizado, opCursando)
-    filtroContainer.append( selectStatus)
+    filtroContainer.append(selectStatus)
 
     const legendaContainer = createComponent('div', ['legenda-container'])
     const tituloLegenda = createComponent('span', [], 'LEGENDA')
@@ -135,7 +137,7 @@ const createStudentPage = async (siglaCurso) => {
             : todosAlunos.filter(a => a.status && a.status.toLowerCase() === filtro.toLowerCase())
 
         alunosFiltrados.forEach(aluno => {
-            const card = createStudentCard(aluno)
+            const card = createStudentCard(aluno, siglaCurso)
             containerAlunos.appendChild(card)
         })
     }
@@ -152,7 +154,9 @@ const createStudentPage = async (siglaCurso) => {
 }
 
 const loadStudentPage = async (siglaCurso) => {
-    const header = createHeader('turma')
+    const header = createHeader('turma', () => {
+        iniciarApp()
+    })
     const main = await createStudentPage(siglaCurso)
     
     renderScreen(header, main)
@@ -174,7 +178,7 @@ const createCourseCard = (curso) => {
     return botao
 }
 
-const createHeader = (page) => {
+const createHeader = (page, acaoClick) => {
     const header = createComponent('header')
 
     const containerLogo = createComponent('div', ['container-logo'])
@@ -184,11 +188,10 @@ const createHeader = (page) => {
     containerLogo.append(logo, titulo)
 
     const btnSair = createComponent('button', ['btn-header'])
-    btnSair.addEventListener('click', () => {
-        if (page.toLowerCase() !== 'main') {
-            iniciarApp()
-        }
-    })
+    
+    if (acaoClick) {
+        btnSair.addEventListener('click', acaoClick)
+    }
 
     const iconSair = createComponent('img', [], '', { src: './img/Vector.png' })
     
@@ -200,7 +203,6 @@ const createHeader = (page) => {
 
     return header
 }
-
 const createMainPage = async () => {
     const main = createComponent('main', ['main-home'])
 
@@ -226,7 +228,9 @@ const createMainPage = async () => {
 }
 
 const iniciarApp = async () => {
-    const header = createHeader('main')
+    const header = createHeader('main', () => {
+        location.reload()
+    })
     const main = await createMainPage()
     
     renderScreen(header, main)

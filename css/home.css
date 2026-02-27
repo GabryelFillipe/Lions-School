@@ -235,7 +235,7 @@ header {
     border: none;
     border-radius: 8px;
     color: white;
-    box-shadow: 4px 4px 10px rgba(51, 71, 176, 0.3);
+    filter: drop-shadow(12px 12px 2px #3347b080);
     cursor: pointer;
     transition: transform 0.2s;
 }
